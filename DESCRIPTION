@@ -1,0 +1,16 @@
+Package: project
+Type: Package
+Title: Modele de Moran
+Version: 0.1.0
+Author: Divine MADIKITA BOKATOLA, Lise MBANI-TALAMESSO, William HAMLET
+Maintainer: The package maintainer <divinemadikita@gmail.com>
+Description: A utiliser pour le modèle de Moran.
+ Ce package permet de calculer le 
+ temps de fixation grâce à 
+ l'effet de sélection afin de faire
+ apparaitre un individu diploïde
+ de façon homogène dans une population.
+  
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
