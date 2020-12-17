@@ -1,0 +1,268 @@
+---
+title: 'Projet Bioinformatique : Programmation R (ISV51) Le modèle de Moran'
+author: "MBANI-TALAMESSO Lise, MADIKITA BOKATOLA Divine  & HAMLET William"
+date: "Jeudi 17 Décembre 2020"
+output:
+  word_document: default
+  pdf_document: default
+  html_document:
+    df_print: paged
+subtitle: L3 Bio-Info (Université d'Evry - Paris-Saclay)
+---
+
+
+# Le Modèle de Moran
+
+
+Le modèle de moran est un processus stochastique (aléatoire)  utilisé en biologie pour décrire des populations finies.
+
+Il a été introduit en 1958 par Patrick Moran et permet d'étudier la dynamique de la dérive génétique dans une population finie.
+
+Dans ce modèle, On considère une population de N individus diploïdes possédant deux allèles possibles, a et A.
+Le modèle fonctionne de la manière suivantes : 
+  - La population a une taille finie et fixe (nombre d'individus constant au cours du temps)
+  - À chaque étape, un allèle est sélectionné pour se reproduire (il se dédouble) 
+  - Au meme moment  un autre allèle est sélectionné pour mourir uniformément au hasard
+  - L' allèle qui se dédouble remplace ainsi l'allèle qui meurt.
+  - L' allèle qui se dedouble peut etre la meme qui meurt.
+  - Il n'y a pas de sélection, c'est-à-dire que chaque individu au sein de la population a des chances égales de survivre et de se reproduire
+  
+
+
+
+Image ici
+
+
+
+
+**Objectif du projet**
+
+1) Estimer le temps de fixation sans effet de sélection
+2) On ajoute un effet de sélection (A se reproduit avec une probabilité plus grande que a), estimer le temps de fixation dans ce cas-là.
+3) Rechercher/prouver des résultats théoriques avec l’effet de sélection
+
+
+
+# 1- Estimer le temps de fixation sans effet de sélection
+
+
+```{r}
+# Nombre d'individu sans effet de séléction
+N <- 10
+Aa <-c("A","a")
+p <- 0.5
+Individu <- sample(c("A", "a"), 2*N, replace=TRUE, prob =c(p,1-p))
+ind <- print(paste(Individu, collapse = ""))
+tt <- (distIndividu <- table(Individu)) # donne le nombre d'allèles A et a
+tt
+barplot(tt, col = 6)
+```
+**Fixation de l'allèle a**
+
+```{r}
+# Fonction permettant d'afficher les individus pour voir lequel est fixé
+# Faire 2 simulations pour voir qui se fixe
+N <- 10
+p <- 0.5
+Aa <- c("A","a") #on définit un vecteur avec les allèles A et a
+Dr <- c("D","r") #on définit un vecteur avec les lettres r et D : D pour les phénotypes “AA”,“aA”,“Aa” et r pour le phénotype "aa"
+
+i <- 0 #compteur vide que l'on remplira dans la boucle
+
+while(p>0 && p<1) {# condition de la boucle en utilisant les proba
+  population<- (sample(c(1,0), replace = TRUE, size =2*N, prob =c(p, 1-p))) #détermination de la population par laquel on observera l'évolution des populations
+  p <-sum(population == "1")/(2*N) #Fait la somme de tous les 1 et le divise par 2*N selon la formule de la proba avant effet de séléction
+  i <- i+1 #compteur rempli avec la condition
+  phe <- (population[rep(c(T,F), N)] + population [rep(c(T,F), N)]) != 0
+  a <- print(paste(c(Aa[population+1], "    ", Dr[phe+1]),  collapse = ""))  #permet d'afficher les Aa par rapport à la pop avec A = 1 et a = 0
+}
+```
+
+
+
+
+
+```{r }
+print(paste("Le nombre d'itération au cours des générations est:", i))
+```
+
+
+
+
+**Temps de fixation de l'allèle a **
+
+```{r}
+# fonction one.simu calculant le temps de fixation avant effet de séléction
+# Temps de fixation pour A
+one.simu<- function(N, p){
+  population<- (sample(c(1,0), replace = TRUE, size =2*N, prob =c(p, 1-p)))
+  a <- sum(population == "1")
+  p <- ((N*2)-a)/(2*N)
+  f1 <- -N^2*((1 - p)*log10(1 - p) + p*log10(p))
+  return(f1)
+}
+one.simu(10,0.5)
+```
+
+
+
+
+
+
+**Fixation de l'allèle A**
+
+
+
+```{r}
+N <- 10
+p <- 0.5
+Aa <- c("A","a") 
+Dr <- c("D","r")
+i <- 0 
+
+while(p>0 && p<1) 
+  {
+  population<- (sample(c(1,0), replace = TRUE, size =2*N, prob =c(p, 1-p))) 
+  p <-sum(population == "1")/(2*N) 
+  i <- i+1 
+  phe <- (population[rep(c(T,F), N)] + population [rep(c(T,F), N)]) != 0
+  a <- print(paste(c(Aa[population+1], "    ", Dr[phe+1]),  collapse = "")) 
+}
+```
+
+
+
+
+```{r}
+print(paste("Le nombre d'itération au cours des générations est:", i))
+```
+
+
+
+**Temps de fixation de l'allèle A **
+```{r}
+one.simu<- function(N, p){
+  population<- (sample(c(1,0), replace = TRUE, size =2*N, prob =c(p, 1-p)))
+  p <- sum(population == "1")/(2*N)
+  f1 <- -N^2*((1 - p)*log10(1 - p) + p*log10(p))
+  return(f1)
+}
+one.simu(10,0.5)
+```
+
+
+
+
+```{r}
+### Graphique pour la fixation sans effet de séléction
+Fixat <- NULL
+N <- 50
+p <- 0.5
+Aa <- c("A","a")
+while(p > 0 && p < 1)
+{
+  res <- rbinom(n = 2*N, size = 1, prob = p)
+  res
+  p <- sum(res)/(2*N)
+  Fixat <- c(Fixat,-N^2*((1 - p)*log10(1 - p) + p*log10(p))) #On augmente la taille du vecteur Fixat avec chaque nouvelle valeur
+}
+plot(Fixat, type = 'l', ylim = c(0,-N^2*((1 - 0.5)*log10(1 - 0.5) + 0.5*log10(0.5))))
+abline(h = c(0,-N^2*((1 - 0.5)*log10(1 - 0.5) + 0.5*log10(0.5)), col = 2))
+
+```
+
+
+
+
+**Conclusion**
+
+
+
+
+
+
+# 2-  On ajoute un effet de sélection - Estimer le temps de fixation dans ce cas-là
+
+```{r}
+#Fonction affichant Nombre d'individu a (0) et A (1) après effet de sélection
+
+effet_selection <- function(N,p){
+  h <- 0
+  while(p > 0 && p < 1){
+  Individu <- sample(c(1,0), 2*N, replace=TRUE, prob =c(p,1-p))
+  p <-sum(Individu)/(2*N)
+  h <- h + 1
+  print(distIndividu <- table(Individu))
+    }
+  return(h)
+  
+}
+effet_selection(10,0.8)
+
+```
+
+
+**Avec la fonction replicate**
+```{r}
+replicate(3,effet_selection(10,0.8))
+```
+
+
+```{r}
+#Evolution du temps de fixation
+pop_N1 <- function(N1,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14) {
+  f1 <- -N^2*((1 - p1)*log10(1 - p1) + p1*log10(p1))
+  f2 <- -N^2*((1 - p2)*log10(1 - p2) + p2*log10(p2))
+  f3 <- -N^2*((1 - p3)*log10(1 - p3) + p3*log10(p3))
+  f4 <- -N^2*((1 - p4)*log10(1 - p4) + p4*log10(p4))
+  f5 <- -N^2*((1 - p5)*log10(1 - p5) + p5*log10(p5))
+  f6 <- -N^2*((1 - p6)*log10(1 - p6) + p6*log10(p6))
+  f7 <- -N^2*((1 - p7)*log10(1 - p7) + p7*log10(p7))
+  f8 <- -N^2*((1 - p8)*log10(1 - p8) + p8*log10(p8))
+  f9 <- -N^2*((1 - p9)*log10(1 - p9) + p9*log10(p9))
+  f10 <- -N^2*((1 - p10)*log10(1 - p10) + p10*log10(p10))
+  f11 <- -N^2*((1 - p11)*log10(1 - p11) + p11*log10(p11))
+  f12 <- -N^2*((1 - p12)*log10(1 - p12) + p12*log10(p12))
+  f13 <- -N^2*((1 - p13)*log10(1 - p13) + p13*log10(p13))
+  f14 <- -N^2*((1 - p14)*log10(1 - p14) + p14*log10(p14))
+  fix <- c(f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13,f14)
+  return (fix)
+}
+
+pop_N1(50,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.2,0.3,0.4,0.5)
+fixation1 <- c(pop_N1(50,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.2,0.3,0.4,0.5))
+fixation1
+
+library(ggplot2)
+theme_set(theme_minimal())
+probabilité <- c(0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.2,0.3,0.4,0.5)
+fixation1
+df <- data.frame(fixation1, probabilité )
+df
+ggplot(data = df, aes(x = fixation1, y = probabilité, col = 3))+geom_line()
+```
+
+
+
+```{r}
+### Graphique pour la fixation avec effet de séléction
+Fixat <- NULL
+N <- 50
+p <- 0.8
+Aa <- c("A","a")
+while(p > 0 && p < 1)
+{
+  res <- rbinom(n = 2*N, size = 1, prob = p)
+  res
+  p <- sum(res)/(2*N)
+  Fixat <- c(Fixat,-N^2*((1 - p)*log10(1 - p) + p*log10(p))) #On augmente la taille du vecteur Fixat avec chaque nouvelle valeur
+}
+plot(Fixat, col = 10, type = 'l', ylim = c(0,-N^2*((1 - 0.8)*log10(1 - 0.8) + 0.8*log10(0.8))))
+abline(h = c(0,-N^2*((1 - 0.8)*log10(1 - 0.8) + 0.8*log10(0.8)), col = 6))
+```
+
+
+# 3- Rechercher/prouver des résultats théoriques avec l’effet de sélection
+
+
+
